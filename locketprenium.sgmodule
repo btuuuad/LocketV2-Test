@@ -29,13 +29,12 @@ http-request ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:4
 
 [Script]
 #LocketGold
-revenuecat = type=http-response, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/[^/]+$), script-path=https://raw.githubusercontent.com/btuuuad/LOCKETGOLD/refs/heads/main/locket_btuuuad.js, requires-body=true, max-size=-1, timeout=60
+revenuecat = type=http-response, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/[^/]+$), script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/code.js, requires-body=true, max-size=-1, timeout=60
 
 # Gộp cả RevenueCat và Firebase Remote Config vào deleteHeader để ép server luôn trả về Full JSON (tránh lỗi 304 mất Filter/Caption)
-deleteHeader = type=http-request, pattern=^https:\/\/(api\.revenuecat\.com\/.+\/(receipts|subscribers)|firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+), script-path=https://raw.githubusercontent.com/btuuuad/LOCKETGOLD/refs/heads/main/deletehear.js, timeout=60
+deleteHeader = type=http-request, pattern=^https:\/\/(api\.revenuecat\.com\/.+\/(receipts|subscribers)|firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+), script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/deletehearv2.js, timeout=60
 
-locket_rc = type=http-response, pattern=^https:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+, script-path=https://raw.githubusercontent.com/btuuuad/LOCKETGOLD/refs/heads/main/chilllocket.js, requires-body=true, max-size=-1, timeout=60
-
+locket_rc = type=http-response, pattern=^https:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+, script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/locket1.js, requires-body=true, max-size=-1, timeout=60
 [MITM]
 hostname = %APPEND% api.revenuecat.com, firebaseremoteconfig.googleapis.com
 [Map Local]
