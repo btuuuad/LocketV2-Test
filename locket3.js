@@ -112,7 +112,7 @@ if (typeof $request !== "undefined" && typeof $response === "undefined") {
                 {
                     section: "🔒 CHƯA KÍCH HOẠT BẢN QUYỀN TÚ BỈM 🔒",
                     items: [
-                        { overlay_id: "caption:locked_id", source: "remote", caption: { background: { colors: ["#8B0000", "#FF0000"] }, icon: { data: "🆔", type: "emoji" }, max_lines: 1, text: "ID của bạn: " + savedUid, text_color: "#FFFFFF", type: "static_content" } },
+                        { overlay_id: "caption:locked_id", source: "remote", caption: { background: { colors: ["#8B0000", "#FF0000"] }, icon: { data: "🆔", type: "emoji" }, max_lines: 1, text: "ID: " + savedUid, text_color: "#FFFFFF", type: "static_content" } },
                         { overlay_id: "caption:locked_guide", source: "remote", caption: { background: { colors: ["#000000", "#434343"] }, icon: { data: "🔑", type: "emoji" }, max_lines: 1, text: "Gõ Key (TB-xxxxxx) vào ô Tìm Bạn Bè để mở khóa ✨", text_color: "#FFD700", type: "static_content" } }
                     ]
                 }
