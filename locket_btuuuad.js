@@ -1,10 +1,9 @@
 // ============================================================
-// THUẬT TOÁN TẠO & KIỂM TRA KEY RIÊNG CHO TỪNG KHÁCH (SHOP TÚ BỈM)
+// THUẬT TOÁN TẠO & KIỂM TRA KEY NGẦM (SHOP TÚ BỈM)
 // ============================================================
-var SECRET_SALT = "TUBIM_911_SECRET_2026"; // Mật khẩu gốc của riêng bạn (Tuyệt đối giữ bí mật)
-var MASTER_ADMIN_KEY = "TUBIM-ADMIN-9999"; // Key VIP dự phòng của riêng bạn (mở được mọi máy)
+var SECRET_SALT = "TUBIM_911_SECRET_2026"; // Mật khẩu gốc của riêng bạn
+var MASTER_ADMIN_KEY = "TUBIM-ADMIN-9999"; // Key VIP dự phòng mở mọi máy
 
-// Hàm băm tạo Key độc quyền từ UserID của khách
 function generateUserKey(userId) {
     var str = userId.trim() + "_" + SECRET_SALT;
     var hash = 5381;
@@ -23,35 +22,29 @@ var url = $request.url || "";
 var match = url.match(/subscribers\/([^/?]+)/);
 var currentUserId = match ? decodeURIComponent(match[1]) : "";
 
-// Đọc Key khách nhập từ ô Argument của Shadowrocket (hoặc đã lưu trong máy)
+// Lưu UserID vào bộ nhớ để hiển thị trực tiếp bên trong giao diện Locket
+if (currentUserId && typeof $persistentStore !== "undefined") {
+    $persistentStore.write(currentUserId, "TUBIM_CURRENT_UID");
+} else if (!currentUserId && typeof $persistentStore !== "undefined") {
+    currentUserId = $persistentStore.read("TUBIM_CURRENT_UID") || "CHUA_LAY_DUOC_ID";
+}
+
+// Đọc Key khách đã nhập từ bên trong app Locket
 var inputKey = "";
-if (typeof $argument !== "undefined" && $argument !== "" && $argument !== "CHUA_NHAP_KEY" && $argument !== "{{{KEY_KICH_HOAT}}}") {
-    inputKey = $argument.trim().toUpperCase();
-    if (typeof $persistentStore !== "undefined") {
-        $persistentStore.write(inputKey, "TUBIM_SAVED_KEY");
-    }
-} else if (typeof $persistentStore !== "undefined") {
+if (typeof $persistentStore !== "undefined") {
     inputKey = ($persistentStore.read("TUBIM_SAVED_KEY") || "").trim().toUpperCase();
 }
 
-// Tính toán mã Key chuẩn của tài khoản đang mở app
-var expectedKey = currentUserId ? generateUserKey(currentUserId) : "";
+var expectedKey = (currentUserId && currentUserId !== "CHUA_LAY_DUOC_ID") ? generateUserKey(currentUserId) : "";
 var isAuthorized = (inputKey !== "") && (inputKey === expectedKey || inputKey === MASTER_ADMIN_KEY);
 
 if (url.includes("/subscribers/") && !isAuthorized) {
     if (typeof $persistentStore !== "undefined") {
         $persistentStore.write("BLOCKED", "TUBIM_AUTH_STATUS");
     }
-    if (typeof $notification !== "undefined") {
-        $notification.post(
-            "🔒 CHƯA NHẬP KEY HOẶC SAI KEY TÚ BỈM",
-            "Mã ID của bạn: " + currentUserId,
-            "Gửi Mã ID này cho Shop Tú Bỉm để nhận Key kích hoạt riêng!"
-        );
-    }
+    // KHÔNG gửi thông báo ở Shadowrocket nữa, trả về nguyên bản để ép hiện bảng ID trong Locket
     $done({});
 } else {
-    // Nếu đúng Key của đúng người -> Cấp thẻ thông hành mở khóa toàn bộ Caption & Filter
     if (isAuthorized && typeof $persistentStore !== "undefined") {
         $persistentStore.write("VERIFIED_BY_TUBIM", "TUBIM_AUTH_STATUS");
     }
