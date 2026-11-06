@@ -1,16 +1,28 @@
 var SECRET_SALT = "TUBIM_911_SECRET_2026";
-var MASTER_ADMIN_KEY = "TUBIM-ADMIN-9999";
+var MASTER_ADMIN_KEY = "TB-9999";
 
-function generateUserKey(userId) {
-    var str = userId.trim() + "_" + SECRET_SALT;
+// Funksion për të shkurtuar UID-në e gjatë të Locket në 5 karaktere
+function getShortId(rawUid) {
+    if (!rawUid) return "88888";
+    var h = 5381;
+    for (var i = 0; i < rawUid.length; i++) {
+        h = ((h << 5) + h) + rawUid.charCodeAt(i);
+        h = h & h;
+    }
+    var code = Math.abs(h).toString(36).toUpperCase();
+    while (code.length < 5) code = "8" + code;
+    return code.substring(0, 5);
+}
+
+function generateShortKey(shortId) {
+    var str = shortId.trim().toUpperCase() + "_" + SECRET_SALT;
     var hash = 5381;
     for (var i = 0; i < str.length; i++) {
         hash = ((hash << 5) + hash) + str.charCodeAt(i);
         hash = hash & hash;
     }
-    var hex = Math.abs(hash).toString(16).toUpperCase();
-    while (hex.length < 6) hex = "0" + hex;
-    return "TB-" + hex.substring(0, 6);
+    var num = (Math.abs(hash) % 9000) + 1000;
+    return "TB-" + num;
 }
 
 // ============================================================
@@ -21,27 +33,24 @@ if (typeof $request !== "undefined" && typeof $response === "undefined") {
     var reqUrl = $request.url || "";
     var reqBody = $request.body || "";
 
-    // 1. Tự động lấy UID nếu có trong request gửi đi của Locket
     var uidMatch = reqBody.match(/"(?:uid|user_id|userId)"\s*:\s*"([a-zA-Z0-9_-]{10,40})"/) || reqUrl.match(/users\/([a-zA-Z0-9_-]{10,40})/);
     if (uidMatch && uidMatch[1] && typeof $persistentStore !== "undefined") {
-        $persistentStore.write(uidMatch[1], "TUBIM_CURRENT_UID");
+        $persistentStore.write(getShortId(uidMatch[1]), "TUBIM_SHORT_ID");
     }
 
-    // 2. Bắt mã Key (TB-XXXXXX hoặc TUBIM-ADMIN-9999) khi khách gõ vào ô Tìm kiếm bạn bè / Caption / Chat trong Locket
     var combinedInput = reqUrl + " " + reqBody;
-    var keyMatch = combinedInput.match(/\b(TB-[0-9A-F]{6}|TUBIM-ADMIN-9999)\b/i);
+    var keyMatch = combinedInput.match(/\b(TB-[0-9]{4}|TB-[0-9A-F]{6}|TB-9999)\b/i);
     if (keyMatch && keyMatch[1] && typeof $persistentStore !== "undefined") {
         var enteredKey = keyMatch[1].toUpperCase();
         $persistentStore.write(enteredKey, "TUBIM_SAVED_KEY");
 
-        var savedUid = $persistentStore.read("TUBIM_CURRENT_UID") || "";
-        var validKey = savedUid ? generateUserKey(savedUid) : "";
+        var savedShortId = $persistentStore.read("TUBIM_SHORT_ID") || "";
+        var validKey = savedShortId ? generateShortKey(savedShortId) : "";
         if (enteredKey === validKey || enteredKey === MASTER_ADMIN_KEY) {
             $persistentStore.write("VERIFIED_BY_TUBIM", "TUBIM_AUTH_STATUS");
         }
     }
 
-    // 3. Fake Region sang US
     headers["Accept-Language"] = "en-US,en;q=0.9";
     headers["accept-language"] = "en-US,en;q=0.9";
     headers["X-Country-Code"] = "US";
@@ -73,9 +82,9 @@ if (typeof $request !== "undefined" && typeof $response === "undefined") {
     }
 
     if (ua.includes("Locket") || (obj && obj.entries)) {
-        var savedUid = (typeof $persistentStore !== "undefined") ? ($persistentStore.read("TUBIM_CURRENT_UID") || "Đang tải ID...") : "Không rõ";
+        var shortId = (typeof $persistentStore !== "undefined") ? ($persistentStore.read("TUBIM_SHORT_ID") || "88888") : "88888";
         var savedKey = (typeof $persistentStore !== "undefined") ? ($persistentStore.read("TUBIM_SAVED_KEY") || "").toUpperCase() : "";
-        var expectedKey = (savedUid && savedUid !== "Đang tải ID...") ? generateUserKey(savedUid) : "";
+        var expectedKey = generateShortKey(shortId);
         var isVerified = (savedKey !== "") && (savedKey === expectedKey || savedKey === MASTER_ADMIN_KEY);
 
         if (isVerified && typeof $persistentStore !== "undefined") {
@@ -86,7 +95,6 @@ if (typeof $request !== "undefined" && typeof $response === "undefined") {
 
         if (authStatus !== "VERIFIED_BY_TUBIM" && !isVerified) {
             obj.entries = obj.entries || {};
-            // BẢNG POPUP HIỆN TRỰC TIẾP MÃ ID & HƯỚNG DẪN NHẬP KEY TRONG APP LOCKET
             obj.entries.feature_discovery_popup_config = JSON.stringify({
                 tag: "CHƯA KÍCH HOẠT KEY 🔒",
                 tag_gradient: true,
@@ -94,26 +102,25 @@ if (typeof $request !== "undefined" && typeof $response === "undefined") {
                 animation: "confetti",
                 show_confetti: true,
                 confetti_enabled: true,
-                title: "ID: " + savedUid,
+                title: "MÃ ID: " + shortId,
                 feature_set: [{
                     title: "Cách nhập Key ngay trong Locket ✨",
-                    body: "1. Chụp màn hình gửi Mã ID ở trên cho Shop Tú Bỉm.\n2. Mở mục Kết bạn (Tìm kiếm bạn bè) trong Locket, gõ mã Key (VD: TB-123456) vào ô tìm kiếm rồi thoát ra mở lại Locket là mở khóa!",
+                    body: "1. Gửi Mã ID (" + shortId + ") cho Shop.\n2. Gõ mã Key (VD: TB-1234) në kutin e kërkimit të miqve në Locket për ta zhbllokuar!",
                     imageURL: "https://i.ibb.co/9LRn7VY/DORAEMON.jpg"
                 }],
-                primary_button_title: "Đã hiểu • Đi nhập Key 🔑",
+                primary_button_title: "E kuptova • Shko te futja e çelësit 🔑",
                 campaign: "lock_screen_" + new Date().getTime(),
                 start_at: "2020-01-01T00:00:00",
                 end_at: "2099-12-31T23:59:59",
                 use_local_time_zone: true
             });
 
-            // HIỆN MÃ ID NGAY TRÊN THANH CAPTION LOCKET ĐỂ KHÁCH DỄ NHÌN
             obj.entries.overlay_items = JSON.stringify([
                 {
-                    section: "🔒 CHƯA KÍCH HOẠT BẢN QUYỀN TÚ BỈM 🔒",
+                    section: "🔒 ID: " + shortId + " (Dërgo te Shop)",
                     items: [
-                        { overlay_id: "caption:locked_id", source: "remote", caption: { background: { colors: ["#8B0000", "#FF0000"] }, icon: { data: "🆔", type: "emoji" }, max_lines: 1, text: "ID: " + savedUid, text_color: "#FFFFFF", type: "static_content" } },
-                        { overlay_id: "caption:locked_guide", source: "remote", caption: { background: { colors: ["#000000", "#434343"] }, icon: { data: "🔑", type: "emoji" }, max_lines: 1, text: "Gõ Key (TB-xxxxxx) vào ô Tìm Bạn Bè để mở khóa ✨", text_color: "#FFD700", type: "static_content" } }
+                        { overlay_id: "caption:locked_id", source: "remote", caption: { background: { colors: ["#8B0000", "#FF0000"] }, icon: { data: "🆔", type: "emoji" }, max_lines: 1, text: "ID: " + shortId, text_color: "#FFFFFF", type: "static_content" } },
+                        { overlay_id: "caption:locked_guide", source: "remote", caption: { background: { colors: ["#000000", "#434343"] }, icon: { data: "🔑", type: "emoji" }, max_lines: 1, text: "Güro Key (TB-xxxx) te Kërko Miq për ta hapur ✨", text_color: "#FFD700", type: "static_content" } }
                     ]
                 }
             ]);
