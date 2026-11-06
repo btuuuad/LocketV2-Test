@@ -62,26 +62,7 @@ if (typeof $request !== "undefined" && typeof $response === "undefined") {
         }
     }
 
-    // Chuyển vùng sang Mỹ (US)
-    headers["Accept-Language"] = "en-US,en;q=0.9";
-    headers["accept-language"] = "en-US,en;q=0.9";
-    headers["X-Country-Code"] = "US";
-    headers["CF-IPCountry"] = "US";
-    headers["X-AppEngine-Country"] = "US";
-    headers["X-Client-Region"] = "US";
-    headers["X-Locket-Region"] = "US";
 
-    if (reqBody) {
-        try {
-            reqBody = reqBody.replace(/"countryCode"\s*:\s*"[A-Za-z]+"/g, '"countryCode":"US"');
-            reqBody = reqBody.replace(/"regionCode"\s*:\s*"[A-Za-z]+"/g, '"regionCode":"US"');
-            reqBody = reqBody.replace(/"locale"\s*:\s*"[a-zA-Z_-]+"/g, '"locale":"en_US"');
-            reqBody = reqBody.replace(/"languageCode"\s*:\s*"[a-zA-Z_-]+"/g, '"languageCode":"en-US"');
-            reqBody = reqBody.replace(/"timeZone"\s*:\s*"[^"]+"/g, '"timeZone":"America/Los_Angeles"');
-        } catch (e) {}
-    }
-    $done({ headers: headers, body: reqBody });
-} 
 // ============================================================
 // PHẦN 2: HTTP-RESPONSE (KIỂM TRA KÍCH HOẠT & HIỂN THỊ TRONG APP)
 // ============================================================
