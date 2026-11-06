@@ -1,5 +1,7 @@
-#!name=locket-Tubim
-#Shadowrocket Configuration - locket-Tubim
+#!name=Locket Gold - Tú Bỉm VIP
+#!desc=Bấm vào biểu tượng chữ (i) bên cạnh Module để nhập Key Kích Hoạt do Shop Tú Bỉm cấp.
+#!arguments=KEY_KICH_HOAT:CHUA_NHAP_KEY
+#!arguments-desc=KEY_KICH_HOAT: Nhập mã Key (VD: TB-8F92A1) do Shop Tú Bỉm cấp riêng cho ID của bạn.
 
 [General]
 bypass-system = true
@@ -11,31 +13,32 @@ AND,((DOMAIN-SUFFIX,googlevideo.com),(PROTOCOL,UDP)),REJECT
 AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP)),REJECT
 
 [Header Rewrite]
-^https?://api.revenuecat.com/.+/(receipts$|subscribers/?(.*?)*$) header-del x-revenuecat-etag
-^https?://api.revenuecat.com/.+/(receipts$|subscribers/?(.*?)*$) header-del X-RevenueCat-ETag
+^https?://api\.revenuecat\.com/.+/(receipts$|subscribers/?(.*?)*$) header-del x-revenuecat-etag
+^https?://api\.revenuecat\.com/.+/(receipts$|subscribers/?(.*?)*$) header-del X-RevenueCat-ETag
+^https?://firebaseremoteconfig\.googleapis\.com/ header-del if-none-match
+^https?://firebaseremoteconfig\.googleapis\.com/ header-del If-None-Match
+^https?://firebaseremoteconfig\.googleapis\.com/ header-del if-modified-since
+^https?://firebaseremoteconfig\.googleapis\.com/ header-del If-Modified-Since
+^https?://(firebaseremoteconfig\.googleapis\.com|api\.locketcamera\.com)/ header-replace Accept-Language en-US,en;q=0.9
+^https?://(firebaseremoteconfig\.googleapis\.com|api\.locketcamera\.com)/ header-add X-Country-Code US
 http-request ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/user-customization-service\/v1\/customize$ header-del if-none-match
 
 [Url Rewrite]
-# Chặn quảng cáo Google Video
 ^https?:\/\/[\w-]+\.googlevideo\.com\/(?!(dclk_video_ads|videoplayback\?)).+&oad _ reject-200
-
-# YouTube Ads
 ^https?:\/\/(www|s)\.youtube\.com\/api\/stats\/ads _ reject-200
 ^https?:\/\/(www|s)\.youtube\.com\/(pagead|ptracking) _ reject-200
 ^https?:\/\/s\.youtube\.com\/api\/stats\/qoe\?adcontext _ reject-200
-
-# General Video Ad request
 (^https?:\/\/[\w-]+\.googlevideo\.com\/(?!dclk_video_ads).+?)&ctier=L(&.+?),ctier,(.+) $1$2$3 302
 
 [Script]
-#LocketGold
-#hostname = api.revenuecat.com, firebaseremoteconfig.googleapis.com
-revenuecat = type=http-response, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/[^/]+$), script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/locket_btuuuad.js, requires-body=true, max-size=-1, timeout=60
+# Truyền biến argument KEY_KICH_HOAT vào thẳng file locket_btuuuad.js
+revenuecat = type=http-response, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts$|subscribers\/[^/]+$), script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/locket_btuuuad.js, requires-body=true, max-size=-1, timeout=60, argument={{{KEY_KICH_HOAT}}}
 deleteHeader = type=http-request, pattern=^https:\/\/api\.revenuecat\.com\/.+\/(receipts|subscribers), script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/delete.js, timeout=60
-locket_rc = type=http-response, pattern=^https:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+, script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/locket1.js, requires-body=true, max-size=-1, timeout=60
-#************************************#\
+locket_us_req = type=http-request, pattern=^https:\/\/(firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+|api\.locketcamera\.com\/.+), script-path=https://raw.githubusercontent.com/btuuuad/LocketV2-Test/refs/heads/main/locket3.js, requires-body=true, max-size=-1, timeout=60
+locket_rc = type=http-response, pattern=^https:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/locket-4252a\/.+, script-path=https://raw.githubusercontent.com/btuuuad/LOCKETGOLD/refs/heads/main/locket3.js, requires-body=true, max-size=-1, timeout=60
+
 [Map Local]
 ^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&oad data-type=text data="" status-code=200
 
 [MITM]
-hostname = %APPEND%, *.googlevideo.com, youtubei.googleapis.com, www.youtube.com, s.youtube.com, -redirector*.googlevideo.com, premium*.truecaller.com, sub.store, api.revenuecat.com, firebaseremoteconfig.googleapis.com, api.rc-backup.com, buy.itunes.apple.com, spclient.wg.spotify.com, *spclient.spotify.com, api-mobile.soundcloud.com, api.picsart.com, us-central1-alight-creative.cloudfunctions.net, api-sub.meitu.com, photos.adobe.io, , ap*.intsig.net, api-account.kinemasters.com, api.mr.pixocial.com, newbeee-api.beautyplus.com, user-snow-api.snow.me, h5.xiuxiu.meitu.com, api.xiuxiu.meitu.com, gs-loc.apple.com, gs-loc-cn.apple.com, bluedot.is.autonavi.com, bluedot.is.autonavi.com.gds.alibabadns.com
+hostname = %APPEND%, api.locketcamera.com, *.locketcamera.com, *.googlevideo.com, youtubei.googleapis.com, www.youtube.com, s.youtube.com, -redirector*.googlevideo.com, premium*.truecaller.com, sub.store, api.revenuecat.com, firebaseremoteconfig.googleapis.com, api.rc-backup.com, buy.itunes.apple.com, spclient.wg.spotify.com, *spclient.spotify.com, api-mobile.soundcloud.com, api.picsart.com, us-central1-alight-creative.cloudfunctions.net, api-sub.meitu.com, photos.adobe.io, ap*.intsig.net, api-account.kinemasters.com, api.mr.pixocial.com, newbeee-api.beautyplus.com, user-snow-api.snow.me, h5.xiuxiu.meitu.com, api.xiuxiu.meitu.com, gs-loc.apple.com, gs-loc-cn.apple.com, bluedot.is.autonavi.com, bluedot.is.autonavi.com.gds.alibabadns.com
